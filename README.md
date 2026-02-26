@@ -153,8 +153,7 @@ npm run dev
 
 ## 📄 Lisans
 
-Bu proje **MIT Lisansı** altında lisanslanmıştır.  
-Dilediğiniz gibi kullanabilir, geliştirebilir ve dağıtabilirsiniz.
+Bu proje **GPL 3.0 Lisansı** altında lisanslanmıştır.  
 
 ------------------------------------------------------------------------
 
