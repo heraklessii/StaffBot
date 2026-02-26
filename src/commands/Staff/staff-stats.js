@@ -1,0 +1,62 @@
+import { SlashCommandBuilder, AttachmentBuilder } from 'discord.js';
+import Staff from '../../models/Staff.js';
+import StaffSettings from '../../models/StaffSettings.js';
+import { calculatePerformance, Cache } from '../../utils/staffCalculator.js';
+import { generateStatsCard } from '../../utils/imageGenerator.js';
+
+export default {
+    data: new SlashCommandBuilder()
+        .setName('staff-stats')
+        .setDescription('Yetkili istatistiklerini gelişmiş grafik olarak görüntüler.')
+        .addUserOption(option => option.setName('yetkili').setDescription('İstatistiklerine bakılacak yetkili')),
+        
+    async execute(interaction) {
+        await interaction.deferReply();
+        const targetUser = interaction.options.getUser('yetkili') || interaction.user;
+        const guildId = interaction.guild.id;
+
+        try {
+            // .lean() kullanıyoruz ki objeyi doğrudan kopyalayıp manipüle edebilelim
+            let staffData = await Staff.findOne({ guildId, userId: targetUser.id }).lean();
+            const settings = await StaffSettings.findOne({ guildId }) || { weights: { message: 1, voice: 0.1, invite: 15 } };
+
+            if (!staffData) {
+                staffData = {
+                    level: 1, totalMessages: 0, totalVoice: 0, totalInvites: 0, 
+                    tasksCompleted: 0, penaltyPoints: 0, performanceScore: 0
+                };
+            }
+
+            // YENİ: GERÇEK ZAMANLI İSTATİSTİK YANSITMASI (Sıfır DB Yükü)
+            // Eğer kullanıcı şu an seste ise ve sayaç akıyorsa, o anki aktif süreyi al
+            let activeVoiceTime = 0;
+            if (Cache.voiceJoins.has(targetUser.id)) {
+                activeVoiceTime = Date.now() - Cache.voiceJoins.get(targetUser.id).joinTime;
+            }
+
+            // Aktif süreyi sadece görsel (Display) objemize ekliyoruz
+            const displayData = { ...staffData };
+            displayData.totalVoice += activeVoiceTime;
+            displayData.dailyVoice += activeVoiceTime;
+            displayData.weeklyVoice += activeVoiceTime;
+
+            // Puanı da aktif süreye göre dinamik hesapla
+            const baseScore = calculatePerformance(displayData, settings.weights) + (displayData.performanceScore || 0);
+            
+            const nextLevelScore = (displayData.level || 1) * 500;
+            
+            // Resmi oluştururken görsel (displayData) verisini kullanıyoruz
+            const buffer = await generateStatsCard(targetUser, displayData, baseScore, nextLevelScore);
+            const attachment = new AttachmentBuilder(buffer, { name: 'stats-card.png' });
+
+            await interaction.editReply({ 
+                content: `İşte <@${targetUser.id}> isimli yetkilinin gerçek zamanlı performans kartı:`, 
+                files: [attachment] 
+            });
+
+        } catch (error) {
+            console.error('Stats Grafik Hatası:', error);
+            await interaction.editReply({ content: 'Görsel istatistikler oluşturulurken bir hata meydana geldi.' });
+        }
+    }
+};
