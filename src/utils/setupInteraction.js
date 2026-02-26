@@ -18,7 +18,6 @@ export const handleSetupInteraction = async (interaction) => {
             settings.logChannel = interaction.values[0]; // Seçilen kanal ID'si
         }
         else if (customId === 'setup_msg_channels') {
-            // YENİ: Seçilen mesaj kanallarını kaydet
             settings.allowedMessageChannels = interaction.values;
         }
 

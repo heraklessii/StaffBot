@@ -9,8 +9,6 @@ export default async (client) => {
         const userId = message.author.id;
         const guildId = message.guild.id;
 
-        // DÜZELTME: Cache.spamGuard tamamen kaldırıldı. Yetkililerin her mesajı sayılacak.
-
         try {
             const settings = SettingsCache.get(guildId);
             if (!settings || settings.staffRoles.length === 0) return;

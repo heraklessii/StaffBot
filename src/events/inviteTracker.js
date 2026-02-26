@@ -11,9 +11,7 @@ export default async (client) => {
         try {
             const invites = await guild.invites.fetch();
             invitesCache.set(guild.id, new Map(invites.map((inv) => [inv.code, inv.uses])));
-        } catch (err) {
-            // Botun 'Sunucuyu Yönet' yetkisi yoksa çökmeyi engeller
-        }
+        } catch (err) {}
     };
 
     // 1. Bot açıldığında tüm sunucuların davetlerini senkronize et
@@ -23,7 +21,7 @@ export default async (client) => {
         console.log('[SİSTEM] Davet takip önbelleği (Invite Cache) başarıyla yüklendi.');
     });
 
-    // 2. YENİ: Bot açıkken yeni bir sunucuya eklenirse onun da davetlerini hemen kaydet
+    // 2. Bot açıkken yeni bir sunucuya eklenirse onun da davetlerini hemen kaydet
     client.on(Events.GuildCreate, async (guild) => {
         await cacheGuildInvites(guild);
     });
@@ -54,7 +52,7 @@ export default async (client) => {
 
             const oldInvites = invitesCache.get(guildId);
             
-            // KRİTİK DÜZELTME: Eğer cache henüz oluşmadıysa (Bot yeni açılırken biri girdiyse),
+            // Eğer cache henüz oluşmadıysa (Bot yeni açılırken biri girdiyse),
             // yanlış kişiye puan vermemek için işlemi iptal edip cache'i doldururuz.
             if (!oldInvites) {
                 invitesCache.set(guildId, new Map(newInvites.map((inv) => [inv.code, inv.uses])));

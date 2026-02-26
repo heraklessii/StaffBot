@@ -7,7 +7,7 @@ export default {
         .setName('staff-reset')
         .setDescription('Bir yetkilinin veya TÜM SUNUCUNUN verilerini sıfırlar.')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        // Kullanıcı seçimi opsiyonel yapıldı (Boş bırakılırsa tüm sunucu sıfırlanır)
+        // Kullanıcı seçimi (Boş bırakılırsa tüm sunucu sıfırlanır)
         .addUserOption(option => option.setName('kullanici').setDescription('Sıfırlanacak yetkili (Tüm sunucu için boş bırakın).').setRequired(false)),
 
     async execute(interaction) {

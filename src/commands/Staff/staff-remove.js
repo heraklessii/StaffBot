@@ -42,7 +42,7 @@ export default {
 
             await interaction.editReply({ embeds: [embed] });
 
-            // 🚨 CİLA EKLENTİSİ: Log Kanalına Silme Bildirimi
+            // Log Kanalına Silme Bildirimi
             if (settings && settings.logChannel) {
                 const logCh = interaction.guild.channels.cache.get(settings.logChannel);
                 if (logCh) {

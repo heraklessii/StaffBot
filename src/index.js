@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { loadCommands } from './handlers/commandHandler.js';
 import { loadEvents } from './handlers/eventHandler.js';
-import { loadErrorHandler } from './handlers/errorHandler.js'; // YENİ: Kalkan eklendi
+import { loadErrorHandler } from './handlers/errorHandler.js';
 import { startVoiceAutoSave } from './utils/voiceAutoSave.js'; 
 
 dotenv.config();
@@ -24,19 +24,19 @@ const client = new Client({
 client.commands = new Collection();
 
 const init = async () => {
-    console.log('[SİSTEM] Modüller ve kalkanlar yükleniyor...');
+    console.log('[SİSTEM] Modüller yükleniyor...');
     
-    // 1. Anti-Crash Kalkanını Başlat (En önce çalışmalı ki yüklenirkenki hataları da tutsun)
+    // 1. Anti-Crash Başlat
     loadErrorHandler(client);
 
-    // 2. Dinamik Yükleyicileri Çalıştır (Handler)
+    // 2. Dinamik Yükleyicileri Çalıştır
     await loadCommands(client);
     await loadEvents(client);
 
     // 3. Ses Yedekleme Döngüsünü Başlat
     startVoiceAutoSave();
 
-    // 4. Veritabanı Tolerans Olaylarını Dinle
+    // 4. Veritabanı Olaylarını Dinle
     mongoose.connection.on('disconnected', () => {
         console.warn('[MONGO] Veritabanı bağlantısı koptu! Yeniden bağlanılmaya çalışılıyor...');
     });

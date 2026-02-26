@@ -4,6 +4,7 @@ import StaffSettings from '../models/StaffSettings.js';
 import SettingsCache from './settingsCache.js';
 import { calculatePerformance } from './staffCalculator.js';
 import { checkLevelAndTasks } from './taskSystem.js';
+import { formatVoiceTime } from './timeFormatter.js';
 
 // YARDIMCI FONKSİYON: Adminlerin yaptığı işlemleri log kanalına yazar
 const sendAdminActionLog = (guild, settings, adminId, targetId, actionText, color) => {
@@ -34,7 +35,7 @@ export const generateAdminPanel = async (guildId, member) => {
         .setDescription('Bu panelden yetkilinin tüm verilerine doğrudan müdahale edebilirsiniz.')
         .addFields(
             { name: '📈 Genel Durum', value: `Seviye: **${staffData.level || 1}**\nToplam Puan: **${currentScore}**\nCeza Puanı: **${staffData.penaltyPoints || 0}**`, inline: true },
-            { name: '📊 İstatistikler', value: `Mesaj: **${staffData.totalMessages}**\nSes: **${(staffData.totalVoice / (1000 * 60 * 60)).toFixed(1)} Saat**\nDavet: **${staffData.totalInvites}**`, inline: true },
+            { name: '📊 İstatistikler', value: `Mesaj: **${staffData.totalMessages}**\nSes: **${formatVoiceTime(staffData.totalVoice)}**\nDavet: **${staffData.totalInvites}**`, inline: true },
             { name: '⚖️ Operasyon', value: `Mod İşlemi: **${staffData.totalModeration || 0}**\nGörev: **${staffData.tasksCompleted}**\nİzinde Mi?: **${staffData.isOnLeave ? 'Evet 🏖️' : 'Hayır'}**`, inline: true }
         )
         .setFooter({ text: 'Değişiklikler anında veritabanına işlenir.' });

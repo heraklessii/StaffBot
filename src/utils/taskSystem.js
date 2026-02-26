@@ -1,3 +1,4 @@
+import { EmbedBuilder } from 'discord.js';
 import Staff from '../models/Staff.js';
 import SettingsCache from './settingsCache.js';
 import { calculatePerformance } from './staffCalculator.js';
@@ -8,6 +9,21 @@ const sendRoleErrorLog = (member, settings, action) => {
         const logCh = member.guild.channels.cache.get(settings.logChannel);
         if (logCh) {
             logCh.send({ content: `⚠️ **Yetki Hiyerarşisi Hatası:** <@${member.id}> kullanıcısına seviye rolü **${action === 'add' ? 'verilemedi' : 'alınamadı'}**. Lütfen botun rolünün, işlem yapılmak istenen rolden daha YUKARIDA olduğundan emin olun!` }).catch(() => null);
+        }
+    }
+};
+
+// YARDIMCI FONKSİYON: Görev tamamlandığında duyuru atar
+const sendTaskCompletionLog = (member, settings, taskType, bonus) => {
+    if (settings && settings.logChannel) {
+        const logCh = member.guild.channels.cache.get(settings.logChannel);
+        if (logCh) {
+            const embed = new EmbedBuilder()
+                .setTitle('🎯 Görev Tamamlandı!')
+                .setColor('#2ECC71') // Yeşil renk
+                .setDescription(`Tebrikler <@${member.id}>! Günlük **${taskType} Görevini** başarıyla tamamladın ve **+${bonus} Puan** kazandın!`)
+                .setThumbnail(member.user.displayAvatarURL());
+            logCh.send({ embeds: [embed] }).catch(() => null);
         }
     }
 };
@@ -30,6 +46,9 @@ export const checkLevelAndTasks = async (staffData, member) => {
         staffData.tasksCompleted += 1;
         staffData.dailyMessageBonusClaimed = true;
         requiresSave = true;
+        
+        // 🚀 GÖREV DUYURUSU (Mesaj)
+        sendTaskCompletionLog(member, settings, 'Mesaj', settings.tasks.messageBonus);
     }
 
     if (!staffData.dailyVoiceBonusClaimed && staffData.dailyVoice >= voiceTargetMs) {
@@ -37,6 +56,9 @@ export const checkLevelAndTasks = async (staffData, member) => {
         staffData.tasksCompleted += 1;
         staffData.dailyVoiceBonusClaimed = true;
         requiresSave = true;
+        
+        // 🚀 GÖREV DUYURUSU (Ses)
+        sendTaskCompletionLog(member, settings, 'Ses', settings.tasks.messageBonus);
     }
 
     // 2. SEVİYE (LEVEL) KONTROLÜ

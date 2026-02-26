@@ -1,7 +1,7 @@
 import { Events, AuditLogEvent } from 'discord.js';
 import Staff from '../models/Staff.js';
 import SettingsCache from '../utils/settingsCache.js';
-import { checkLevelAndTasks } from '../utils/taskSystem.js'; // YENİ EKLENDİ
+import { checkLevelAndTasks } from '../utils/taskSystem.js';
 
 export default async (client) => {
     client.on(Events.GuildAuditLogEntryCreate, async (auditLogEntry, guild) => {
@@ -31,7 +31,6 @@ export default async (client) => {
 
             // Puan kazanıldıysa kaydet ve SEVİYE KONTROLÜ yap
             if (earnedPoints > 0) {
-                // new: true parametresi, güncellenmiş veriyi döndürmesini sağlar
                 const updatedStaff = await Staff.findByIdAndUpdate(executorData._id, {
                     $inc: { 
                         totalModeration: 1, 
@@ -39,7 +38,7 @@ export default async (client) => {
                     }
                 }, { new: true });
 
-                // 🚨 SESSİZ HATA DÜZELTMESİ: Yetkili ban attığında level atlayabiliyorsa atlat!
+                // Yetkili ban attığında level atlayabiliyorsa atlat
                 const member = await guild.members.fetch(executorId).catch(() => null);
                 if (updatedStaff && member) {
                     await checkLevelAndTasks(updatedStaff, member);

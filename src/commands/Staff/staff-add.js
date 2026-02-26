@@ -24,7 +24,7 @@ export default {
             // 1. Veritabanına Ekle
             await Staff.create({ guildId, userId: targetUser.id });
 
-            // 2. YENİ: Discord üzerinden Yetkili Rollerini Ver
+            // 2. Discord üzerinden Yetkili Rollerini Ver
             const settings = SettingsCache.get(guildId);
             const member = await interaction.guild.members.fetch(targetUser.id).catch(() => null);
             let rolesGiven = false;

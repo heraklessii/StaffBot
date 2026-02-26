@@ -9,9 +9,8 @@ export const loadErrorHandler = (client) => {
         console.error(error);
         console.log('================================================\n');
 
-        // Opsiyonel: Eğer bot çökmek üzereyken sahibine veya bir log kanalına DM atmak isterseniz
-        // const devChannel = client.channels.cache.get('GIZLI_DEV_KANAL_ID');
-        // if (devChannel) devChannel.send(`**[Anti-Crash]** Yakalanan Hata: \`${type}\`\n\`\`\`js\n${error.stack || error}\n\`\`\``).catch(() => null);
+        const devChannel = client.channels.cache.get('1476603461695963268');
+        if (devChannel) devChannel.send(`**[Anti-Crash]** Yakalanan Hata: \`${type}\`\n\`\`\`js\n${error.stack || error}\n\`\`\``).catch(() => null);
     };
 
     // 1. Yakalanmayan Promise Hataları (En sık karşılaşılan çökme sebebi)

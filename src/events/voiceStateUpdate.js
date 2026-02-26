@@ -47,7 +47,7 @@ export default async (client) => {
             }
 
             if (isValid) {
-                // YENİ: channelId bilgisini de Cache içine kaydediyoruz ki kanal silinirse bulabilelim
+                // channelId bilgisini de Cache içine kaydediyoruz ki kanal silinirse bulabilelim
                 Cache.voiceJoins.set(userId, { guildId, channelId: newState.channelId, joinTime: Date.now() });
             }
 

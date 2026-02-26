@@ -2,7 +2,6 @@ import cron from 'node-cron';
 import { executeDailyReset, executeWeeklyReset } from './resetManager.js';
 
 export const startCronJobs = (client) => {
-    // Tüm yük resetManager.js'e devredildiği için cron'lar artık sadece tetikleyicidir.
     
     // Her gece 00:00'da Günlük işlemleri tetikle
     cron.schedule('0 0 * * *', async () => {

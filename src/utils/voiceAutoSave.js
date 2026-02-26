@@ -18,9 +18,7 @@ export const startVoiceAutoSave = () => {
                         { upsert: true }
                     );
                     
-                    // 🚨 KRİTİK DÜZELTME (Race Condition Prevention)
-                    // Veritabanı işlemi sürerken adam sesten çıkmış olabilir!
-                    // Sadece adam HÂLÂ Cache'de duruyorsa ve giriş zamanı bizimkiyle aynıysa yenile.
+                    // Sadece HÂLÂ Cache'de duruyorsa ve giriş zamanı bizimkiyle aynıysa yenile.
                     if (Cache.voiceJoins.has(userId)) {
                         const currentCache = Cache.voiceJoins.get(userId);
                         if (currentCache.joinTime === joinTime) {

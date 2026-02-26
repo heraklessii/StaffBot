@@ -5,7 +5,6 @@ export const Cache = {
     leaderboard: new Map() // Pano cache
 };
 
-// YENİ: Memory Leak (Bellek Sızıntısı) Önleyici - Garbage Collector
 // Her 1 saatte bir SpamGuard önbelleğini temizler
 setInterval(() => {
     Cache.spamGuard.clear();

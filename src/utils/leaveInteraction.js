@@ -34,7 +34,7 @@ export const handleLeaveButton = async (interaction) => {
 
             await interaction.update({ embeds: [embed], components: [] }); // Butonları sil
 
-            // Yetkiliye DM veya kanaldan bildirim at (Opsiyonel ama hoş olur)
+            // Yetkiliye DM üzerinden bildirim at
             const user = await interaction.client.users.fetch(targetUserId).catch(() => null);
             if (user) user.send(`✅ **${interaction.guild.name}** sunucusundaki **${days} günlük** izin talebiniz onaylandı! İyi dinlenmeler.`).catch(() => null);
 

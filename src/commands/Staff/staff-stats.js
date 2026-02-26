@@ -27,7 +27,7 @@ export default {
                 };
             }
 
-            // YENİ: GERÇEK ZAMANLI İSTATİSTİK YANSITMASI (Sıfır DB Yükü)
+            // GERÇEK ZAMANLI İSTATİSTİK YANSITMASI (Sıfır DB Yükü)
             // Eğer kullanıcı şu an seste ise ve sayaç akıyorsa, o anki aktif süreyi al
             let activeVoiceTime = 0;
             if (Cache.voiceJoins.has(targetUser.id)) {

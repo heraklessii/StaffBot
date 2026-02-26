@@ -2,7 +2,7 @@ import { Events } from 'discord.js';
 import Staff from '../models/Staff.js';
 import { Cache } from '../utils/staffCalculator.js';
 
-// YENİ: Bir ses kanalı içindekilerle beraber silinirse, 
+// Bir ses kanalı içindekilerle beraber silinirse, 
 // o kanalda olanların süresini kaybetmemek için kurtarma eventi
 export default async (client) => {
     client.on(Events.ChannelDelete, async (channel) => {

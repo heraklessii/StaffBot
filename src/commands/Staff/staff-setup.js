@@ -33,7 +33,7 @@ export const generateSetupPanel = async (guildId) => {
         new ChannelSelectMenuBuilder().setCustomId('setup_log').setPlaceholder('Haftalık Rapor ve Log Kanalını Seçin').setChannelTypes([ChannelType.GuildText]).setMaxValues(1)
     );
 
-    // YENİ: XP Kazanılacak Kanalları Seçme Menüsü
+    // XP Kazanılacak Kanalları Seçme Menüsü
     const msgChannelRow = new ActionRowBuilder().addComponents(
         new ChannelSelectMenuBuilder().setCustomId('setup_msg_channels').setPlaceholder('Sadece XP Kazanılacak Kanalları Seçin (Boş=Hepsi)').setChannelTypes([ChannelType.GuildText]).setMinValues(0).setMaxValues(10)
     );

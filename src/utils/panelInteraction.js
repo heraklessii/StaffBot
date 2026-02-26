@@ -2,22 +2,20 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 import Staff from '../models/Staff.js';
 import SettingsCache from './settingsCache.js';
 import { calculatePerformance } from './staffCalculator.js';
+import { formatVoiceTime } from './timeFormatter.js'; // YENİ
 
 export const handlePanelButton = async (interaction) => {
-    // deferUpdate() kullanıyoruz ki buton yükleniyor modunda kalmasın, mesaj yenilensin
     await interaction.deferUpdate();
 
     const guildId = interaction.guild.id;
-    const [action, type, pageStr] = interaction.customId.split('_'); // Örn: panel_daily_0
+    const [action, type, pageStr] = interaction.customId.split('_'); 
     let page = parseInt(pageStr) || 0;
     const itemsPerPage = 10;
 
     try {
-        // YENİ DÜZELTME: Ana menüye dönüş sistemi EN BAŞA alındı! 
-        // Böylece aşağıdaki boş Embed başlığı hatasına (ValidationError) düşmeden direkt komutu çalıştırır.
         if (type === 'main') {
             const cmd = interaction.client.commands.get('staff-panel');
-            if (cmd) return cmd.execute(interaction, true); // true = update flag
+            if (cmd) return cmd.execute(interaction, true);
             return;
         }
 
@@ -29,10 +27,8 @@ export const handlePanelButton = async (interaction) => {
         }
 
         let sortedStaff = [];
-        let title = '📊 Liderlik Tablosu'; // YENİ: Fallback (Yedek) başlık atandı, boş kalıp hata verdirmesi engellendi
-        let color = '#2b2d31'; // YENİ: Fallback (Yedek) renk atandı
-
-        const msToHours = (ms) => (ms / (1000 * 60 * 60)).toFixed(1);
+        let title = '📊 Liderlik Tablosu'; 
+        let color = '#2b2d31'; 
 
         if (type === 'daily') {
             title = '📊 Günlük Liderlik Tablosu'; color = '#3498db';
@@ -42,12 +38,11 @@ export const handlePanelButton = async (interaction) => {
             sortedStaff = allStaff.sort((a, b) => b.weeklyMessages - a.weeklyMessages || b.weeklyVoice - a.weeklyVoice);
         } else if (type === 'total') {
             title = '🌍 Genel Performans Liderleri'; color = '#9b59b6';
-            sortedStaff = allStaff.map(s => { s.calculatedScore = calculatePerformance(s, settings.weights); return s; })
+            sortedStaff = allStaff.map(s => { s.calculatedScore = calculatePerformance(s, settings.weights) + (s.performanceScore || 0); return s; })
                                   .sort((a, b) => b.calculatedScore - a.calculatedScore);
         }
 
-        // --- Sayfalama (Pagination) Mantığı ---
-        const maxPages = Math.ceil(sortedStaff.length / itemsPerPage) || 1; // maxPages 0 olmaması için || 1 eklendi
+        const maxPages = Math.ceil(sortedStaff.length / itemsPerPage) || 1;
         if (page < 0) page = 0;
         if (page >= maxPages) page = maxPages - 1;
 
@@ -55,10 +50,12 @@ export const handlePanelButton = async (interaction) => {
 
         let desc = currentSlice.map((s, i) => {
             const rank = (page * itemsPerPage) + i + 1;
-            if (type === 'total') return `**${rank}.** <@${s.userId}> - 🏆 **${s.calculatedScore} Puan** (Lvl: ${s.level || 1})`;
+            if (type === 'total') return `**${rank}.** <@${s.userId}> - 🏆 **${Math.floor(s.calculatedScore)} Puan** (Lvl: ${s.level || 1})`;
             const msgs = type === 'daily' ? s.dailyMessages : s.weeklyMessages;
             const voice = type === 'daily' ? s.dailyVoice : s.weeklyVoice;
-            return `**${rank}.** <@${s.userId}> - 💬 ${msgs} Msj | 🎙️ ${msToHours(voice)} Saat`;
+            
+            // YENİ: Ses formatı değiştirildi
+            return `**${rank}.** <@${s.userId}> - 💬 ${msgs} Msj | 🎙️ ${formatVoiceTime(voice)}`;
         }).join('\n');
 
         const embed = new EmbedBuilder()
@@ -67,7 +64,6 @@ export const handlePanelButton = async (interaction) => {
             .setDescription(desc || 'Veri yok.')
             .setFooter({ text: `Sayfa ${page + 1} / ${maxPages} | Toplam Yetkili: ${sortedStaff.length}` });
 
-        // İleri Geri Butonları
         const row = new ActionRowBuilder().addComponents(
             new ButtonBuilder().setCustomId(`panel_${type}_${page - 1}`).setLabel('◀ Geri').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
             new ButtonBuilder().setCustomId(`panel_${type}_${page + 1}`).setLabel('İleri ▶').setStyle(ButtonStyle.Secondary).setDisabled(page === maxPages - 1),

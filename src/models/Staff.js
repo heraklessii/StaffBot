@@ -23,7 +23,6 @@ const staffSchema = new mongoose.Schema({
     lastWeekVoice: { type: Number, default: 0 },
     highestLevelReached: { type: Number, default: 1 },
     
-    // YENİ: Market Sistemi için harcanan jetonlar
     // Bakiyesi = (Toplam Puan) - (Harcanan Jetonlar) olarak hesaplanacak
     spentCoins: { type: Number, default: 0 }
     

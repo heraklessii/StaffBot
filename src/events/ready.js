@@ -4,7 +4,7 @@ import { Cache } from '../utils/staffCalculator.js';
 import { startCronJobs } from '../utils/cronJobs.js';
 import { checkMissedResets } from '../utils/resetManager.js'; 
 
-// DÜZELTME: commandsArray parametresi kaldırıldı, client içerisinden dinamik alınacak
+// commandsArray parametresi kaldırıldı, client içerisinden dinamik alınacak
 export default async (client) => {
     client.once(Events.ClientReady, async () => {
         console.log(`[BOT] ${client.user.tag} olarak giriş yapıldı!`);

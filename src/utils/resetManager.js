@@ -3,6 +3,7 @@ import Staff from '../models/Staff.js';
 import StaffSettings from '../models/StaffSettings.js';
 import SystemStatus from '../models/SystemStatus.js';
 import SettingsCache from './settingsCache.js';
+import { formatVoiceTime } from './timeFormatter.js'; // YENİ
 
 // Türkiye saatine göre "YYYY-MM-DD" formatında bugünün tarihini alır
 export const getTRDateStr = () => {
@@ -27,8 +28,8 @@ export const getTRWeekStr = () => {
 export const executeDailyReset = async (client) => {
     console.log('[RESET] Günlük sıfırlama, izin kontrolü ve temizlik başlatıldı...');
     try {
-        await Staff.updateMany({}, { 
-            $set: { dailyMessages: 0, dailyVoice: 0, dailyMessageBonusClaimed: false, dailyVoiceBonusClaimed: false } 
+        await Staff.updateMany({}, {
+            $set: { dailyMessages: 0, dailyVoice: 0, dailyMessageBonusClaimed: false, dailyVoiceBonusClaimed: false }
         });
 
         const now = new Date();
@@ -48,10 +49,10 @@ export const executeDailyReset = async (client) => {
                     if (!member || !member.roles.cache.some(r => settings.staffRoles.includes(r.id))) {
                         await Staff.findByIdAndDelete(staffData._id);
                     }
-                } catch (err) {}
+                } catch (err) { }
             }
         }
-        
+
         // İşlem bittiğinde hafızaya tarihi yaz
         await SystemStatus.findOneAndUpdate({ identifier: 'main' }, { lastDailyResetStr: getTRDateStr() }, { upsert: true });
         console.log('[RESET] Günlük sıfırlama başarıyla tamamlandı.');
@@ -66,7 +67,7 @@ export const executeWeeklyReset = async (client) => {
 
         for (const settings of allSettings) {
             const guildId = settings.guildId;
-            
+
             // Pasiflik Cezası Uygula
             if (settings.inactivityPenalty > 0) {
                 await Staff.updateMany(
@@ -82,11 +83,12 @@ export const executeWeeklyReset = async (client) => {
                     const topStaff = await Staff.find({ guildId }).sort({ weeklyMessages: -1, weeklyVoice: -1 }).limit(3).lean();
 
                     if (topStaff.length > 0) {
-                        const msToHours = (ms) => (ms / (1000 * 60 * 60)).toFixed(1);
                         let desc = '';
                         const medals = ['🥇', '🥈', '🥉'];
-                        topStaff.forEach((s, i) => { desc += `${medals[i]} <@${s.userId}>\n💬 ${s.weeklyMessages} Mesaj | 🎙️ ${msToHours(s.weeklyVoice)} Saat\n\n`; });
-                        
+                        topStaff.forEach((s, i) => {
+                            // YENİ UYGULAMA
+                            desc += `${medals[i]} <@${s.userId}>\n💬 ${s.weeklyMessages.toLocaleString('tr-TR')} Mesaj | 🎙️ ${formatVoiceTime(s.weeklyVoice)}\n\n`;
+                        });
                         const embed = new EmbedBuilder()
                             .setTitle('🏆 Haftanın En İyi Yetkilileri')
                             .setColor('#FFD700')
@@ -98,20 +100,22 @@ export const executeWeeklyReset = async (client) => {
             }
         }
 
-        // YENİ (ARŞİV SİSTEMİ): Sıfırlamadan önce verileri lastWeek kısmına kopyala (Aggregation Pipeline)
+        // Sıfırlamadan önce verileri lastWeek kısmına kopyala
         await Staff.updateMany({}, [
-            { $set: { 
-                lastWeekMessages: "$weeklyMessages", 
-                lastWeekVoice: "$weeklyVoice",
-                weeklyMessages: 0, 
-                weeklyVoice: 0 
-            }}
+            {
+                $set: {
+                    lastWeekMessages: "$weeklyMessages",
+                    lastWeekVoice: "$weeklyVoice",
+                    weeklyMessages: 0,
+                    weeklyVoice: 0
+                }
+            }
         ]);
 
         // İşlem bittiğinde hafızaya haftayı yaz
         await SystemStatus.findOneAndUpdate({ identifier: 'main' }, { lastWeeklyResetStr: getTRWeekStr() }, { upsert: true });
         console.log('[RESET] Haftalık işlemler ve arşivleme başarıyla tamamlandı.');
-        
+
     } catch (err) { console.error('Haftalık sıfırlama hatası:', err); }
 };
 

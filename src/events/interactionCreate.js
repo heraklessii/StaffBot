@@ -26,9 +26,9 @@ export default async (client) => {
                 } else if (interaction.customId.startsWith('admin_')) {
                     await handleAdminInteraction(interaction); 
                 } else if (interaction.customId.startsWith('reward_')) {
-                    await handleRewardInteraction(interaction); // YENİ: Rewards Dashboard
+                    await handleRewardInteraction(interaction);
                 } else if (interaction.customId.startsWith('market_admin_')) {
-                    await handleMarketAdminInteraction(interaction); // YENİ: Market Dashboard
+                    await handleMarketAdminInteraction(interaction);
                 }
             } 
             
@@ -40,9 +40,9 @@ export default async (client) => {
                 } else if (interaction.customId === 'market_buy') {
                     await handleMarketInteraction(interaction);
                 } else if (interaction.customId === 'reward_del_select') {
-                    await handleRewardInteraction(interaction); // YENİ
+                    await handleRewardInteraction(interaction);
                 } else if (interaction.customId === 'market_admin_del_select') {
-                    await handleMarketAdminInteraction(interaction); // YENİ
+                    await handleMarketAdminInteraction(interaction);
                 }
             }
 
@@ -50,9 +50,9 @@ export default async (client) => {
                  if (interaction.customId.startsWith('setup_')) {
                     await handleSetupInteraction(interaction); 
                 } else if (interaction.customId.startsWith('reward_role_select_')) {
-                    await handleRewardInteraction(interaction); // YENİ
+                    await handleRewardInteraction(interaction);
                 } else if (interaction.customId.startsWith('market_admin_role_')) {
-                    await handleMarketAdminInteraction(interaction); // YENİ
+                    await handleMarketAdminInteraction(interaction);
                 }
             }
             

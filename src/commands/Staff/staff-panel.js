@@ -2,6 +2,7 @@ import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, But
 import Staff from '../../models/Staff.js';
 import StaffSettings from '../../models/StaffSettings.js';
 import { calculatePerformance } from '../../utils/staffCalculator.js';
+import { formatVoiceTime } from '../../utils/timeFormatter.js'; // YENİ
 
 export default {
     data: new SlashCommandBuilder()
@@ -22,8 +23,6 @@ export default {
                 const replyMethod = isUpdate ? interaction.editReply.bind(interaction) : interaction.editReply.bind(interaction);
                 return replyMethod({ content: '⚠️ Henüz sisteme kayıtlı veya veri üretmiş bir yetkili bulunmuyor.', embeds: [], components: [] });
             }
-
-            const msToHours = (ms) => (ms / (1000 * 60 * 60)).toFixed(1);
 
             const rankedStaff = allStaff.map(s => {
                 s.calculatedScore = calculatePerformance(s, settings.weights) + (s.performanceScore || 0);
@@ -54,14 +53,15 @@ export default {
                     { 
                         name: '💬 Haftanın Mesaj Lideri', 
                         value: topMessage && topMessage.weeklyMessages > 0 
-                            ? `> <@${topMessage.userId}> — **${topMessage.weeklyMessages}** Mesaj` 
+                            ? `> <@${topMessage.userId}> — **${topMessage.weeklyMessages.toLocaleString('tr-TR')}** Mesaj` 
                             : '> Veri Yok', 
                         inline: true 
                     },
                     { 
                         name: '🎙️ Haftanın Ses Lideri', 
+                        // Daha okunaklı format
                         value: topVoice && topVoice.weeklyVoice > 0 
-                            ? `> <@${topVoice.userId}> — **${msToHours(topVoice.weeklyVoice)}** Saat` 
+                            ? `> <@${topVoice.userId}> — **${formatVoiceTime(topVoice.weeklyVoice)}**` 
                             : '> Veri Yok', 
                         inline: true 
                     },
@@ -82,21 +82,9 @@ export default {
                 .setTimestamp();
 
             const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-                    .setCustomId('panel_daily_0')
-                    .setLabel('Günlük Liderler')
-                    .setStyle(ButtonStyle.Primary)
-                    .setEmoji('📊'), // HATA BURADAYDI: Düzelttik!
-                new ButtonBuilder()
-                    .setCustomId('panel_weekly_0')
-                    .setLabel('Haftalık Liderler')
-                    .setStyle(ButtonStyle.Success)
-                    .setEmoji('📈'),
-                new ButtonBuilder()
-                    .setCustomId('panel_total_0')
-                    .setLabel('Genel Sıralama')
-                    .setStyle(ButtonStyle.Secondary)
-                    .setEmoji('🌍')
+                new ButtonBuilder().setCustomId('panel_daily_0').setLabel('Günlük Liderler').setStyle(ButtonStyle.Primary).setEmoji('📊'),
+                new ButtonBuilder().setCustomId('panel_weekly_0').setLabel('Haftalık Liderler').setStyle(ButtonStyle.Success).setEmoji('📈'),
+                new ButtonBuilder().setCustomId('panel_total_0').setLabel('Genel Sıralama').setStyle(ButtonStyle.Secondary).setEmoji('🌍')
             );
 
             if (isUpdate) {

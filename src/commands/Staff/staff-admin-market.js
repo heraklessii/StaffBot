@@ -1,6 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } from 'discord.js';
 import StaffSettings from '../../models/StaffSettings.js';
-import SettingsCache from '../../utils/settingsCache.js';
 
 export const generateAdminMarketPanel = async (guildId) => {
     let settings = await StaffSettings.findOne({ guildId });

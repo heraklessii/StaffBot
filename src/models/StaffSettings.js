@@ -28,14 +28,13 @@ const settingsSchema = new mongoose.Schema({
     meetingBonus: { type: Number, default: 100 },
     meetingPenalty: { type: Number, default: 50 },
     
-    // YENİ: Market Ürünleri Kataloğu
     marketItems: {
         type: [{
             id: String,
             name: String,
             price: Number,
             description: String,
-            roleId: { type: String, default: null } // Ürün satın alınınca otomatik verilecek rol (Opsiyonel)
+            roleId: { type: String, default: null }
         }],
         default: []
     }
