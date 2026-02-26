@@ -16,7 +16,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// 🚨 YENİ: Cooldown Belleği
+import { SlashCommandBuilder, AttachmentBuilder, Collection } from 'discord.js';
+import Staff from '../../models/Staff.js';
+import StaffSettings from '../../models/StaffSettings.js';
+import { calculatePerformance, Cache } from '../../utils/staffCalculator.js';
+import { generateStatsCard } from '../../utils/imageGenerator.js';
+
+// 🚨 YENİ: Cooldown (Bekleme Süresi) Belleği
 const cooldowns = new Collection();
 
 export default {
