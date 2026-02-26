@@ -32,7 +32,7 @@ export const startVoiceAutoSave = () => {
                 try {
                     await Staff.findOneAndUpdate(
                         { guildId, userId },
-                        { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration } },
+                        { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration, monthlyVoice: duration } },
                         { upsert: true }
                     );
                     

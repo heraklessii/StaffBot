@@ -20,6 +20,9 @@ import Staff from '../models/Staff.js';
 import SettingsCache from '../utils/settingsCache.js';
 import { checkLevelAndTasks } from '../utils/taskSystem.js';
 
+// Geçmiş mesajları tutan ufak bir RAM belleği
+const lastMessages = new Map();
+
 export default async (client) => {
     client.on('messageCreate', async (message) => {
         if (message.author.bot || !message.guild) return;
@@ -31,7 +34,6 @@ export default async (client) => {
             const settings = SettingsCache.get(guildId);
             if (!settings || settings.staffRoles.length === 0) return;
 
-            // Eğer XP kazanılacak kanallar seçilmişse, başka kanaldaki mesajları sayma
             if (settings.allowedMessageChannels && settings.allowedMessageChannels.length > 0) {
                 if (!settings.allowedMessageChannels.includes(message.channel.id)) return;
             }
@@ -41,9 +43,19 @@ export default async (client) => {
 
             if (message.content.length < settings.minMessageLength) return;
 
+            // 🚨 YENİ: KALİTE FİLTRESİ (Anti-Spam)
+            // Süre limiti yok ama aynı mesajı (Örn: "hoşgeldin") 5 saniye içinde peş peşe atarsa sayma
+            const lastMsgData = lastMessages.get(userId);
+            if (lastMsgData && lastMsgData.content === message.content.toLowerCase() && (Date.now() - lastMsgData.time) < 5000) {
+                return; // Puan verme, filtreye takıldı.
+            }
+
+            lastMessages.set(userId, { content: message.content.toLowerCase(), time: Date.now() });
+
+            // YENİ: monthlyMessages eklendi
             const updatedStaff = await Staff.findOneAndUpdate(
                 { guildId, userId },
-                { $inc: { totalMessages: 1, dailyMessages: 1, weeklyMessages: 1 } },
+                { $inc: { totalMessages: 1, dailyMessages: 1, weeklyMessages: 1, monthlyMessages: 1 } },
                 { upsert: true, new: true, setDefaultsOnInsert: true }
             );
 

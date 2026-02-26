@@ -41,7 +41,7 @@ export default async (client) => {
                     try {
                         await Staff.findOneAndUpdate(
                             { guildId: channel.guild.id, userId },
-                            { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration } }
+                            { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration, monthlyVoice: duration } }
                         );
                         console.log(`[CHANNEL RECOVERY] Silinen ${channel.name} kanalındaki ${userId} ID'li yetkilinin süresi kurtarıldı.`);
                     } catch (error) {

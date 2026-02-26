@@ -21,7 +21,7 @@ import Staff from '../models/Staff.js';
 import StaffSettings from '../models/StaffSettings.js';
 import SystemStatus from '../models/SystemStatus.js';
 import SettingsCache from './settingsCache.js';
-import { formatVoiceTime } from './timeFormatter.js'; // YENİ
+import { formatVoiceTime } from './timeFormatter.js';
 
 // Türkiye saatine göre "YYYY-MM-DD" formatında bugünün tarihini alır
 export const getTRDateStr = () => {
@@ -40,6 +40,12 @@ export const getTRWeekStr = () => {
     if (target.getUTCDay() !== 4) target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
     const weekNum = 1 + Math.ceil((firstThursday - target) / 604800000);
     return `${target.getUTCFullYear()}-W${weekNum}`;
+};
+
+// YENİ: Ayın numarasını alır (Örn: 2026-03)
+export const getTRMonthStr = () => {
+    const now = new Date(Date.now() + 3 * 60 * 60 * 1000);
+    return `${now.getUTCFullYear()}-${(now.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 };
 
 // 1. GÜNLÜK SIFIRLAMA İŞLEMİ (Çekirdek Fonksiyon)
@@ -137,24 +143,73 @@ export const executeWeeklyReset = async (client) => {
     } catch (err) { console.error('Haftalık sıfırlama hatası:', err); }
 };
 
-// 3. TELAFİ SİSTEMİ (Bot açılırken çağrılır, kaçanları yakalar)
+// 3. 🚀 YENİ: AYLIK SIFIRLAMA (Ayın Elemanı)
+export const executeMonthlyReset = async (client) => {
+    console.log('[RESET] Aylık istatistikler raporlanıyor, arşivleniyor ve sıfırlanıyor...');
+    try {
+        const allSettings = await StaffSettings.find({});
+
+        for (const settings of allSettings) {
+            const guildId = settings.guildId;
+            
+            if (settings.logChannel) {
+                const channel = client.channels.cache.get(settings.logChannel);
+                if (channel) {
+                    const topStaff = await Staff.find({ guildId }).sort({ monthlyMessages: -1, monthlyVoice: -1 }).limit(1).lean();
+
+                    if (topStaff.length > 0) {
+                        const s = topStaff[0];
+                        const embed = new EmbedBuilder()
+                            .setTitle('🌟 AYIN YETKİLİSİ 🌟')
+                            .setColor('#FFD700')
+                            .setDescription(`Koca bir ay boyunca gösterdiği üstün gayret ve azimden dolayı <@${s.userId}> isimli yetkilimizi tebrik ediyoruz!\n\n**Aylık Performansı:**\n💬 **${s.monthlyMessages.toLocaleString('tr-TR')}** Mesaj\n🎙️ **${formatVoiceTime(s.monthlyVoice)}** Ses\n\nEkibimizin bir parçası olduğun için teşekkürler!`)
+                            .setImage('https://i.imgur.com/L4Z8d6h.gif') // Havalı bir kutlama gifi
+                            .setFooter({ text: 'Aylık veriler sıfırlanmıştır ve arşive kaldırılmıştır.' });
+                        await channel.send({ embeds: [embed] }).catch(() => null);
+                    }
+                }
+            }
+        }
+
+        // Verileri lastMonth'a taşı ve sıfırla
+        await Staff.updateMany({}, [
+            { $set: { 
+                lastMonthMessages: "$monthlyMessages", 
+                lastMonthVoice: "$monthlyVoice",
+                monthlyMessages: 0, 
+                monthlyVoice: 0 
+            }}
+        ]);
+
+        await SystemStatus.findOneAndUpdate({ identifier: 'main' }, { lastMonthlyResetStr: getTRMonthStr() }, { upsert: true });
+        console.log('[RESET] Aylık işlemler başarıyla tamamlandı.');
+        
+    } catch (err) { console.error('Aylık sıfırlama hatası:', err); }
+};
+
+// 4. TELAFİ SİSTEMİ (Bot açılırken çağrılır, kaçanları yakalar)
 export const checkMissedResets = async (client) => {
     const status = await SystemStatus.findOne({ identifier: 'main' });
     const currentDayStr = getTRDateStr();
     const currentWeekStr = getTRWeekStr();
+    const currentMonthStr = getTRMonthStr(); // YENİ
 
     if (!status) {
-        await SystemStatus.create({ identifier: 'main', lastDailyResetStr: currentDayStr, lastWeeklyResetStr: currentWeekStr });
+        await SystemStatus.create({ identifier: 'main', lastDailyResetStr: currentDayStr, lastWeeklyResetStr: currentWeekStr, lastMonthlyResetStr: currentMonthStr });
         return;
     }
 
     if (status.lastDailyResetStr !== currentDayStr) {
-        console.warn(`[CATCH-UP] Bot kapalıyken günlük sıfırlama kaçırılmış! Telafi ediliyor...`);
         await executeDailyReset(client);
     }
 
     if (status.lastWeeklyResetStr !== currentWeekStr) {
-        console.warn(`[CATCH-UP] Bot kapalıyken haftalık sıfırlama kaçırılmış! Telafi ediliyor...`);
         await executeWeeklyReset(client);
+    }
+    
+    // YENİ: Aylık Telafi
+    if (status.lastMonthlyResetStr && status.lastMonthlyResetStr !== currentMonthStr) {
+        console.warn(`[CATCH-UP] Bot kapalıyken AYLIK sıfırlama kaçırılmış! Telafi ediliyor...`);
+        await executeMonthlyReset(client);
     }
 };

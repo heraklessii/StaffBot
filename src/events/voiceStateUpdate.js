@@ -55,7 +55,7 @@ export default async (client) => {
                     if (duration >= 5000) { 
                         const updatedStaff = await Staff.findOneAndUpdate(
                             { guildId, userId },
-                            { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration } },
+                            { $inc: { totalVoice: duration, dailyVoice: duration, weeklyVoice: duration, monthlyVoice: duration } },
                             { upsert: true, new: true, setDefaultsOnInsert: true }
                         );
 

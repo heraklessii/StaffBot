@@ -17,10 +17,9 @@
  */
 
 import cron from 'node-cron';
-import { executeDailyReset, executeWeeklyReset } from './resetManager.js';
+import { executeDailyReset, executeWeeklyReset, executeMonthlyReset } from './resetManager.js';
 
 export const startCronJobs = (client) => {
-    
     // Her gece 00:00'da Günlük işlemleri tetikle
     cron.schedule('0 0 * * *', async () => {
         await executeDailyReset(client);
@@ -29,5 +28,10 @@ export const startCronJobs = (client) => {
     // Her Pazartesi 00:00'da Haftalık işlemleri tetikle
     cron.schedule('0 0 * * 1', async () => {
         await executeWeeklyReset(client);
+    }, { timezone: "Europe/Istanbul" });
+
+    // 🚨 YENİ: Her Ayın 1'inde saat 00:00'da Aylık işlemleri tetikle
+    cron.schedule('0 0 1 * *', async () => {
+        await executeMonthlyReset(client);
     }, { timezone: "Europe/Istanbul" });
 };

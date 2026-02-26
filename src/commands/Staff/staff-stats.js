@@ -16,11 +16,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { SlashCommandBuilder, AttachmentBuilder } from 'discord.js';
-import Staff from '../../models/Staff.js';
-import StaffSettings from '../../models/StaffSettings.js';
-import { calculatePerformance, Cache } from '../../utils/staffCalculator.js';
-import { generateStatsCard } from '../../utils/imageGenerator.js';
+// 🚨 YENİ: Cooldown Belleği
+const cooldowns = new Collection();
 
 export default {
     data: new SlashCommandBuilder()
@@ -29,12 +26,24 @@ export default {
         .addUserOption(option => option.setName('yetkili').setDescription('İstatistiklerine bakılacak yetkili')),
         
     async execute(interaction) {
+        // Cooldown Kontrolü (Sadece staff-stats için)
+        if (cooldowns.has(interaction.user.id)) {
+            const expirationTime = cooldowns.get(interaction.user.id) + 15000; // 15 saniye
+            if (Date.now() < expirationTime) {
+                const timeLeft = (expirationTime - Date.now()) / 1000;
+                return interaction.reply({ content: `⏱️ Bu komutu çok hızlı kullanıyorsunuz. Lütfen **${timeLeft.toFixed(1)} saniye** bekleyin.`, ephemeral: true });
+            }
+        }
+        
+        // Komut kullanıldı, zamanlayıcıyı başlat
+        cooldowns.set(interaction.user.id, Date.now());
+        setTimeout(() => cooldowns.delete(interaction.user.id), 15000);
+
         await interaction.deferReply();
         const targetUser = interaction.options.getUser('yetkili') || interaction.user;
         const guildId = interaction.guild.id;
 
         try {
-            // .lean() kullanıyoruz ki objeyi doğrudan kopyalayıp manipüle edebilelim
             let staffData = await Staff.findOne({ guildId, userId: targetUser.id }).lean();
             const settings = await StaffSettings.findOne({ guildId }) || { weights: { message: 1, voice: 0.1, invite: 15 } };
 
@@ -45,26 +54,19 @@ export default {
                 };
             }
 
-            // GERÇEK ZAMANLI İSTATİSTİK YANSITMASI (Sıfır DB Yükü)
-            // Eğer kullanıcı şu an seste ise ve sayaç akıyorsa, o anki aktif süreyi al
             let activeVoiceTime = 0;
             if (Cache.voiceJoins.has(targetUser.id)) {
                 activeVoiceTime = Date.now() - Cache.voiceJoins.get(targetUser.id).joinTime;
             }
 
-            // Aktif süreyi sadece görsel (Display) objemize ekliyoruz
             const displayData = { ...staffData };
             displayData.totalVoice += activeVoiceTime;
             displayData.dailyVoice += activeVoiceTime;
             displayData.weeklyVoice += activeVoiceTime;
 
-            // Puanı da aktif süreye göre dinamik hesapla
             const baseScore = calculatePerformance(displayData, settings.weights) + (displayData.performanceScore || 0);
             
-            const nextLevelScore = (displayData.level || 1) * 500;
-            
-            // Resmi oluştururken görsel (displayData) verisini kullanıyoruz
-            const buffer = await generateStatsCard(targetUser, displayData, baseScore, nextLevelScore);
+            const buffer = await generateStatsCard(targetUser, displayData, baseScore);
             const attachment = new AttachmentBuilder(buffer, { name: 'stats-card.png' });
 
             await interaction.editReply({ 

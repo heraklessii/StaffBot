@@ -26,8 +26,10 @@ const staffSchema = new mongoose.Schema({
     totalInvites: { type: Number, default: 0 },
     dailyMessages: { type: Number, default: 0 },
     weeklyMessages: { type: Number, default: 0 },
+    monthlyMessages: { type: Number, default: 0 }, // YENİ: Aylık Mesaj
     dailyVoice: { type: Number, default: 0 },
     weeklyVoice: { type: Number, default: 0 },
+    monthlyVoice: { type: Number, default: 0 }, // YENİ: Aylık Ses
     penaltyPoints: { type: Number, default: 0 },
     tasksCompleted: { type: Number, default: 0 },
     performanceScore: { type: Number, default: 0 }, 
@@ -39,11 +41,10 @@ const staffSchema = new mongoose.Schema({
     totalModeration: { type: Number, default: 0 },
     lastWeekMessages: { type: Number, default: 0 },
     lastWeekVoice: { type: Number, default: 0 },
+    lastMonthMessages: { type: Number, default: 0 }, // YENİ: Arşiv
+    lastMonthVoice: { type: Number, default: 0 }, // YENİ: Arşiv
     highestLevelReached: { type: Number, default: 1 },
-    
-    // Bakiyesi = (Toplam Puan) - (Harcanan Jetonlar) olarak hesaplanacak
     spentCoins: { type: Number, default: 0 }
-    
 }, { timestamps: true });
 
 staffSchema.index({ guildId: 1, userId: 1 }, { unique: true });
