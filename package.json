@@ -1,6 +1,6 @@
 {
-  "name": "advanced-staff-tracker",
-  "version": "1.0.0",
+  "name": "staff-tracker-bot",
+  "version": "2.0.0",
   "description": "Gelişmiş Discord Yetkili Takip Botu",
   "main": "src/index.js",
   "type": "module",
@@ -8,11 +8,20 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js"
   },
+  "keywords": [
+    "discord.js",
+    "discord bot",
+    "staff tracker",
+    "yetkili takip",
+    "moderation"
+  ],
+  "author": "HERA",
+  "license": "MIT",
   "dependencies": {
     "@napi-rs/canvas": "^0.1.53",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.15.3",
     "dotenv": "^16.4.5",
-    "mongoose": "^8.2.1",
+    "mongoose": "^8.4.1",
     "node-cron": "^3.0.3"
   }
 }
